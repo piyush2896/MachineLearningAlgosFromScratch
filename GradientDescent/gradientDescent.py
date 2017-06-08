@@ -1,6 +1,6 @@
 import numpy as np
 
-class GradientDescent:
+class LinearRegression:
     
     def __init__(self, alpha = 0.0001, fit_intercept = True, n_iter = 5, normalize = False):
         self.alpha = alpha
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     x_values = ds[:, 0]
     y_values = ds[:, -1]
     
-    gd = GradientDescent(alpha = 0.03, n_iter = 1200)
+    gd = LinearRegression(alpha = 0.03, n_iter = 1200)
     gd.fit(x_values, y_values)
     
     plt.figure(0)
