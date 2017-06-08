@@ -59,9 +59,6 @@ def train_knn(person_name_list, k=2):
         
     features_train = np.concatenate(data)
     labels_train = np.concatenate(labels_train)
-    print(features_train.shape)
-    print(labels_train.shape)
-    print(labels_train)
     knn = KNN(k)
     knn.fit(features_train, labels_train)
     return knn
