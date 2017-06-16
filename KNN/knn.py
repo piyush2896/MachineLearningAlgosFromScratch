@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.metrics import accuracy_score
 
 class KNN:
     def __init__(self, k=5, dist='eucledian'):
@@ -66,7 +65,7 @@ if __name__ == '__main__':
         kn.predict(x_test)
         acc = kn.accuracy(x_test, y_test)
         accuracy.append(acc)
-        print('k:', ik, '\nAccuracy:', acc)
+        print('k:', ik, '\tAccuracy:', acc)
     
     plt.figure(0)
     plt.plot(k_test, accuracy, 'r-*')
