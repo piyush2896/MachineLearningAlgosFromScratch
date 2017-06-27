@@ -7,6 +7,12 @@ facec = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 labels = {}
 
 def __get_data__():
+    """
+    __get_data__: Gets data from the VideoCapture object and classifies them
+    to a face or no face. 
+    
+    returns: tuple (faces in image, frame read)
+    """
     _, fr = rgb.read()
     gray = cv2.cvtColor(fr, cv2.COLOR_BGR2GRAY)
     faces = facec.detectMultiScale(gray, 1.3, 5)
@@ -14,6 +20,10 @@ def __get_data__():
     return faces, fr
 
 def collect_data(person_name, n=10):
+    """
+    collect_data: Collects data for a particular person name from
+    VideoCapture object and save it to a .npy file
+    """
     skip_frame = 10
     data = []
     flag = False
@@ -43,6 +53,12 @@ def collect_data(person_name, n=10):
     cv2.destroyAllWindows()
 
 def train_knn(person_name_list, k=2):
+    """
+    train_knn: Using the list of names it finds associated
+    .npy files on system and trains KNN
+    
+    returns: KNN object
+    """
     person_to_labels = {}
     ix = 0
     for person in person_name_list:
@@ -65,6 +81,9 @@ def train_knn(person_name_list, k=2):
     
 
 def predict(knn):
+    """
+    predict: It predicts the person in VideoCapture object using the KNN object
+    """
     skip_frame = 10
     data = []
     flag = False
@@ -90,7 +109,7 @@ if __name__ == '__main__':
     input('Press any key to collect 2nd data')
     collect_data('XYZ')
     input('Press any key to start Training...')
-    knn = train_knn(['piyush','palak'])
+    knn = train_knn(['ABC','XYZ'])
     print('Training Complete')
     input('Press any key to start Predictions')
     predict(knn)
