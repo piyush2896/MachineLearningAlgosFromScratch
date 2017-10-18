@@ -25,4 +25,4 @@ if __name__ == '__main__':
 
 
     s = np.array([[1, 0], [1, 0], [0, 1], [1, 1]])
-    print(information_gain(s, 0))
+    assert round(information_gain(s, 0), 4) == 0.3113
