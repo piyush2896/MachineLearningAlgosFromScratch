@@ -29,6 +29,18 @@ def divide_set(rows, attr, value, is_discrete=True):
     return left, right
 
 
+class Node(object):
+
+    def __init__(self, attr=-1, value=None, results=None,
+                 tb=None, fb=None, is_discrete=True):
+        self.attr = attr
+        self.value = value
+        self.results = results
+        self.tb = tb
+        self.fb = fb
+        self.is_discrete = is_discrete    
+
+
 if __name__ == '__main__':
     is_male = np.zeros(14)
     is_male[:9] = 1
