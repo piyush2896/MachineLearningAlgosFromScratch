@@ -38,7 +38,79 @@ class Node(object):
         self.results = results
         self.tb = tb
         self.fb = fb
-        self.is_discrete = is_discrete    
+        self.is_discrete = is_discrete
+
+
+class DecisionTreeClassifier(object):
+
+    def __init__(self, min_samples_split=2):
+        self.root = None
+        self.min_samples_split = min_samples_split
+
+    def fit(self, X, y):
+        all_data = np.zeros((X.shape[0], X.shape[1] + 1))
+        all_data[:, :-1] = X
+        all_data[:, -1] = y
+        self.root = DecisionTreeClassifier.build_tree(all_data)
+
+    def build_tree(data):
+        if data.shape[0] == 0:
+            return Node()
+        current_score = entropy(data[-1])
+
+        best_gain = 0
+        best_criteria = None
+        best_sets = None
+
+        column_counts = data.shape[1] - 1
+        is_discrete = True
+        for col in range(column_counts):
+            column_values = np.unique(data[:, col])
+            if len(column_values) < 250:
+                is_discrete = True
+            else:
+                is_discrete = False
+            for value in column_values:
+                set1, set2 = divide_set(data, col, value, is_discrete=is_discrete)
+
+                p = set1.shape[0] / data.shape[0]
+                gain = current_score - p * entropy(set1[:, -1]) - (1-p) * entropy(set2[:, -1])
+                if gain > best_gain and set1.shape[0] > 0 and set2.shape[0] > 0:
+                    best_gain = gain
+                    best_criteria = (col, value)
+                    best_sets = (set1, set2)
+        if best_gain > 0:
+            true_branch = DecisionTreeClassifier.build_tree(best_sets[0])
+            false_branch = DecisionTreeClassifier.build_tree(best_sets[1])
+            return Node(attr=best_criteria[0], value=best_criteria[1],
+                        tb=true_branch, fb=false_branch, is_discrete=is_discrete)
+        else:
+            x, y = np.unique(data[:, -1], return_counts=True)
+            return Node(results= {x[ix]: y[ix] for ix in range(x.shape[0])})
+
+    def predict(self, X):
+        preds = np.zeros(X.shape[0])
+        for ix in range(X.shape[0]):
+            pred = DecisionTreeClassifier._classify_(X[ix], self.root)
+            preds[ix] = max(pred.items(), key=operator.itemgetter(1))[0]
+        return preds
+
+    def _classify_(x, tree):
+        if tree.results != None:
+            return tree.results
+        v = x[tree.attr]
+        branch = None
+        if not tree.is_discrete:
+            if v >= tree.value:
+                branch = tree.tb
+            else:
+                branch = tree.fb
+        else:
+            if v == tree.value:
+                branch = tree.tb
+            else:
+                branch = tree.fb
+        return DecisionTreeClassifier._classify_(x, branch)
 
 
 if __name__ == '__main__':
@@ -76,3 +148,7 @@ if __name__ == '__main__':
     assert set2.shape[0] * set2.shape[1] == test_set2.shape[0] * test_set2.shape[1]
     assert np.sum(test_set1 == set1) == set1.shape[0] * set1.shape[1]
     assert np.sum(test_set2 == set2) == set2.shape[0] * set2.shape[1]
+
+    dsc = DecisionTreeClassifier()
+    dsc.fit(X, y)
+    assert dsc.predict(np.array([[5, 1, 1, 5]])) == 1.0
