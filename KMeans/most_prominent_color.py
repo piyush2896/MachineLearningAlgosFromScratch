@@ -35,15 +35,15 @@ colors = []
 for each_col in km._centers:
 	
     plt.subplot(1, 8, i)    
-	plt.axis("off")
+    plt.axis("off")
 	
     i+= 1
 	
     col = each_col.astype('uint8')
-	colors.append(255-col)
+    colors.append(255-col)
 	
     a = np.zeros((100, 100, 3))
-	a[:, :, :] = col
+    a[:, :, :] = col
 	
     plt.imshow(255-a)
 plt.show()

@@ -14,7 +14,7 @@ class KMeansClustering:
     def fit(self, x_train, y_train = None, nIter = 100, k = 2):
         self.x_train = x_train
         self.y_train = y_train
-        self.k = 2
+        self.k = k
         self._labels = {}
         self.cluster_centers = {}
         if y_train == None:
