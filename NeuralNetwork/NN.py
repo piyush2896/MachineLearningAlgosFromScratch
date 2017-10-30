@@ -206,9 +206,6 @@ class Model(object):
 if __name__ == '__main__':
     from matplotlib import pyplot as plt
     
-    import sklearn
-    import sklearn.datasets
-    import sklearn.linear_model
     from utils import plot_decision_boundary, load_dataset
 
     X, Y = load_dataset(700, 2)
