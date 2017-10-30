@@ -1,8 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import sklearn
-import sklearn.datasets
-import sklearn.linear_model
 
 def plot_decision_boundary(model, X, y):
     # Set min and max values and give it some padding
