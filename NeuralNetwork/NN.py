@@ -225,5 +225,5 @@ if __name__ == '__main__':
     a.summary()
 
     a.train(x_train, y_train, print_cost=True, print_at_epoch=1000)
-    print('Accuracy on dev set: {}%'.format(a.accuracy(x_test, y_test)*100))
+    print('Accuracy on dev set: {}%'.format(round(a.accuracy(x_test, y_test)*100, 2)))
     plot_decision_boundary(lambda x: a.predict(x.T), X, Y)
