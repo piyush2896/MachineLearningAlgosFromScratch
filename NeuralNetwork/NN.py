@@ -204,4 +204,26 @@ class Model(object):
 
 
 if __name__ == '__main__':
-    pass
+    from matplotlib import pyplot as plt
+    
+    import sklearn
+    import sklearn.datasets
+    import sklearn.linear_model
+    from utils import plot_decision_boundary, load_dataset
+
+    X, Y = load_dataset(700, 2)
+    split = int(0.8 * X.shape[1])
+    x_train, y_train = X[:, :split], Y[:, :split]
+    x_test, y_test = X[:, split:], Y[:, split:]
+    plt.scatter(X[0, :], X[1, :], c=Y, s=40, cmap=plt.cm.Spectral)
+    plt.show()
+    
+    np.random.seed(3)
+    a = Model(x_train.shape, n_epoch=10000, learning_rate=1.2)
+    a.add_layer(5, 'tanh')
+    a.add_layer(1)
+    a.summary()
+
+    a.train(x_train, y_train, print_cost=True, print_at_epoch=1000)
+    print('Accuracy on dev set: {}%'.format(a.accuracy(x_test, y_test)*100))
+    plot_decision_boundary(lambda x: a.predict(x.T), X, Y)
