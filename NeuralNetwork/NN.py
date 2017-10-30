@@ -85,3 +85,123 @@ class Layer(object):
         """
         self.weights -= learning_rate * self.dW
         self.bias -= learning_rate * self.db
+
+
+class Model(object):
+    LOSSES_DICT = {
+        'Sigmoid_Loss': sigmoid_logistic_loss
+    }
+
+    def __init__(self, input_shape, n_epoch=100,
+                 learning_rate=0.01, loss_type='Sigmoid_Loss'):
+        # input stacked column wise a colum represents an example
+        # shape of input - num features X num examples
+        """
+        Initialize a Model object that stacks layes one over other.
+        @params:
+            input_shape: shape of input - format followed (num-features, num-examples)
+            n_epoch: Number of epochs
+            learning_rate: Rate at which we descent the slope at a given epoch
+            loss_type: The loss function to be used
+        @attrbiutes:
+            layers: list of layer objects
+            X: input (features) for training
+            Y: output (labels) for training
+            AL: Output of the last layer after a forward pass
+        """
+        self.input_shape = input_shape
+        self.layers = []
+        self.n_epoch = n_epoch
+        self.learning_rate = learning_rate
+        self.loss_type = loss_type
+
+    def add_layer(self, outputs, activation='sigmoid'):
+        """
+        Add a layer object on the model's stack.
+        @params:
+            outputs: Number of units or number of outputs
+            activation: Name of activation to be used.
+        """
+        if len(self.layers) == 0:
+            layer = Layer(self.input_shape[0], outputs,
+                          activation=activation)
+        else:
+            layer = Layer(self.layers[-1].output_size, outputs,
+                          activation=activation)
+
+        self.layers.append(layer)
+
+    def _calc_loss(self):
+        return np.squeeze(Model.LOSSES_DICT[self.loss_type](self.AL, self.Y))
+
+    def _forward_pass_(self, x):
+        out = x
+        for layer in self.layers:
+            out = layer.forward_op(out)
+        self.AL = out
+        return out
+
+    def _backward_pass_(self):
+        dAL = Model.LOSSES_DICT[self.loss_type](self.AL, self.Y, derive=True)
+        dA_prev = dAL
+        for l in reversed(range(len(self.layers))):
+            dA_prev = self.layers[l].backward_op(dA_prev)
+            self.layers[l].update_params(self.learning_rate)
+
+    def train(self, X, Y, print_cost=False, print_at_epoch=None):
+        """
+        Train the model on given data
+        @params:
+            X: train features
+            Y: train labels
+            print_cost: if True print_cost (at every print_at_epoch)
+            print_at_epoch: At every print_at_epoch the cost will be printed
+        """
+        if print_cost:
+            assert print_at_epoch != None
+        self.X = X
+        self.Y = Y
+        for i in range(self.n_epoch):
+            self._forward_pass_(X)
+            self._backward_pass_()
+            if print_cost and i % print_at_epoch == 0:
+                print('Epoch: {}, Loss: {}'.format(i, self._calc_loss()))
+
+    def predict(self, X, prob_pred=False, threshold=0.5):
+        """
+        Make predictions on given input X.
+        @params:
+            X: to make predictions on 
+            prob_pred: if True return the activation values else return pred > threshold array
+        """
+        if prob_pred:
+            return self._forward_pass_(X)
+        return self._forward_pass_(X) > threshold
+
+    def accuracy(self, x_test, y_test):
+        """
+        Get the accuracy of the network on given data:
+        @params:
+            x_test: The test input features
+            y_test: the test output features
+        """
+        return np.sum(self.predict(x_test) == y_test) / x_test.shape[1]
+
+    def summary(self):
+        """
+        Print the neural network's layer shape and the type of network.
+        """
+        print('Input Shape: ', self.input_shape)
+        print('-'*70)
+        for il in range(len(self.layers)):
+            print('Dense Layer', il)
+            print(self.layers[il].weights.shape)
+            print('-'*70)
+        print('\nModel Type: ' + ('Binary Classifier' 
+                                  if self.layers[-1].output_size==1 else
+                                  'Multi-Class Classifier'))
+        print('Loss Metric used: ' + self.loss_type, end='\n\n')
+
+
+if __name__ == '__main__':
+    pass
