@@ -212,7 +212,7 @@ if __name__ == '__main__':
     split = int(0.8 * X.shape[1])
     x_train, y_train = X[:, :split], Y[:, :split]
     x_test, y_test = X[:, split:], Y[:, split:]
-    plt.scatter(X[0, :], X[1, :], c=Y, s=40, cmap=plt.cm.Spectral)
+    plt.scatter(X[0, :], X[1, :], c=Y[0, :], s=40, cmap=plt.cm.Spectral)
     plt.show()
     
     np.random.seed(3)
@@ -223,4 +223,4 @@ if __name__ == '__main__':
 
     a.train(x_train, y_train, print_cost=True, print_at_epoch=1000)
     print('Accuracy on dev set: {}%'.format(round(a.accuracy(x_test, y_test)*100, 2)))
-    plot_decision_boundary(lambda x: a.predict(x.T), X, Y)
+    plot_decision_boundary(lambda x: a.predict(x.T), X, Y[0, :])
