@@ -30,5 +30,12 @@ class GuassianNB(object):
                 'sd': np.std(self.X[self.y == label], axis=0)
             }
 
+    def predict(self, x_test):
+        preds = []
+        for label in self.labels:
+            preds.append(np.prod(self._pdf(x_test, label), axis=1))
+        preds = np.array(preds)
+        return self.labels[np.argmax(preds, axis=0)]
+
 if __name__ == '__main__':
     pass
