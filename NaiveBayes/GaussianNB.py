@@ -38,4 +38,53 @@ class GuassianNB(object):
         return self.labels[np.argmax(preds, axis=0)]
 
 if __name__ == '__main__':
-    pass
+
+    from matplotlib import pyplot as plt
+    
+    mean_01 = np.array([1.0, 2.0])
+    mean_02 = np.array([-1.0, 4.0])
+    
+    cov_01 = np.array([[1.0, 0.9], [0.9, 2.0]])
+    cov_02 = np.array([[2.0, 0.5], [0.5, 1.0]])
+    
+    ds_01 = np.random.multivariate_normal(mean_01, cov_01, 250)
+    ds_02 = np.random.multivariate_normal(mean_02, cov_02, 250)
+    
+    all_data = np.zeros((500, 3))
+    all_data[:250, :2] = ds_01
+    all_data[250:, :2] = ds_02
+    all_data[250:, -1] = 1
+    
+    np.random.shuffle(all_data)
+    
+    split = int(0.8 * all_data.shape[0])
+    x_train = all_data[:split, :2]
+    x_test = all_data[split:, :2]
+    y_train = all_data[:split, -1]
+    y_test = all_data[split:, -1]
+    plt.figure(0)
+    plt.scatter(x_train[y_train==0, 0], x_train[y_train==0, 1], color='red')
+    plt.scatter(x_train[y_train==1, 0], x_train[y_train==1, 1], color='blue')
+    plt.show()
+    
+    clf = GuassianNB()
+    clf.fit(x_train, y_train)
+    y_hat = clf.predict(x_test)
+    print('Accuracy: {}%'.format(np.sum(y_hat == y_test)/y_test.shape[0] * 100))
+    
+    x_min, x_max = all_data[:, 0].min() - 1, all_data[:, 0].max() + 1
+    y_min, y_max = all_data[:, 1].min() - 1, all_data[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.02),
+                         np.arange(y_min, y_max, 0.02))
+
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    
+    plt.figure(0)
+    plt.scatter(x_train[y_train==0, 0], x_train[y_train==0, 1], color='red')
+    plt.scatter(x_test[y_hat==0, 0], x_test[y_hat==0, 1], color='red', marker='*')
+    plt.scatter(x_train[y_train==1, 0], x_train[y_train==1, 1], color='blue')
+    plt.scatter(x_test[y_hat==1, 0], x_test[y_hat==1, 1], color='blue', marker='+')
+    plt.contour(xx, yy, Z, cmap=plt.cm.Paired)
+    plt.show()
+
