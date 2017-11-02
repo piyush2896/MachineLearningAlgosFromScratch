@@ -3,6 +3,17 @@ import numpy as np
 
 class GuassianNB(object):
 
+    def _pdf(self, x_test, class_label=None):
+        if class_label != None:
+            mean = self.class_summary[class_label]['mean']
+            sd = self.class_summary[class_label]['sd']
+        else:
+            mean = self.summary['mean']
+            sd = self.summary['sd']
+        den = 1 / (np.sqrt(2 * np.pi) * sd)
+        num = np.exp(-((x_test - mean)**2) / (2 * sd**2))
+        return num * den
+
     def fit(self, X, y):
         self.X = X
         self.y = y
