@@ -72,7 +72,7 @@ class SLC(object):
 if __name__ == '__main__':
 
     import matplotlib.pyplot as plt
-    mean_01 = np.array([3.0, -2.0])
+    mean_01 = np.array([2.5, 1.0])
     mean_02 = np.array([-1.0, 4.0])
     
     cov_01 = np.array([[1.0, 0.9], [0.9, 2.0]])
@@ -100,10 +100,12 @@ if __name__ == '__main__':
     clust1 = clusts[0]
     clust2 = clusts[1]
     plt.figure(0)
-    plt.subplot(121)
-    plt.scatter(x_train[y_train==0, 0], x_train[y_train==0, 1], color='red')
-    plt.scatter(x_train[y_train==1, 0], x_train[y_train==1, 1], color='blue')
-    plt.subplot(122)
-    plt.scatter(clust1.points[:, 0], clust1.points[:, 1], color='red')
-    plt.scatter(clust2.points[:, 0], clust2.points[:, 1], color='blue')
+    ax = plt.subplot(121)
+    ax.set_title('Original Data')
+    ax.scatter(x_train[y_train==0, 0], x_train[y_train==0, 1], color='red')
+    ax.scatter(x_train[y_train==1, 0], x_train[y_train==1, 1], color='blue')
+    ax = plt.subplot(122)
+    ax.set_title('Clustered Data')
+    ax.scatter(clust1.points[:, 0], clust1.points[:, 1], color='red')
+    ax.scatter(clust2.points[:, 0], clust2.points[:, 1], color='blue')
     plt.show()
