@@ -7,11 +7,14 @@ class EMClust(object):
         self.n_iter = 100
         self.clust_centers = {}
 
+    def _dist(self, X1, X2):
+        return np.sqrt(np.sum((X1 - X2) ** 2, axis=1))
+
     def _calc_prob(self, X, clust_key):
-        variance = np.var(X, axis=1)
         clust_mean = self.clust_centers[clust_key]['mean']
-        sq_dist = np.sum((X - clust_mean) ** 2, axis=1)
-        power = -0.5 * variance * sq_dist
+        sq_dist = self._dist(X, clust_mean)
+        variance = np.var(sq_dist)
+        power = -0.5 * (1/variance) * sq_dist
         return np.array([np.exp(power)]).T
 
     def _calc_new_mean(self, X):
