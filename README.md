@@ -14,4 +14,3 @@ This repository contains many machine learning algorithms wrote from scratch in 
 
 ## Dependencies
 1. NumPy
-2. Pandas
