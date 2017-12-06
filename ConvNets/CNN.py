@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 from math import ceil, floor
 
 
-def _calc_pad(X, W, strides):
+def _calc_pad(X, W_shape, strides):
     in_height = X.shape[1]
     in_width = X.shape[2]
-    filter_height = W.shape[0]
-    filter_width = W.shape[1]
+    filter_height = W_shape[0]
+    filter_width = W_shape[1]
 
     pad_along_height = (in_height * (strides[0] - 1) -
                         strides[0] + filter_height) / 2
@@ -19,9 +19,9 @@ def _calc_pad(X, W, strides):
     return pad_along_height, pad_along_width
 
 
-def _apply_padding(X, W, strides):
+def _apply_padding(X, W_shape, strides):
     (m, n_H_prev, n_W_prev, n_C) = X.shape
-    pad_along_height, pad_along_width = _calc_pad(X, W, strides)
+    pad_along_height, pad_along_width = _calc_pad(X, W_shape, strides)
     n_H = n_H_prev + 2 * pad_along_height
     n_W = n_H_prev + 2 * pad_along_width
     X_pad = np.pad(X, ((0, 0), (ceil(pad_along_height), floor(pad_along_height)),
@@ -30,9 +30,9 @@ def _apply_padding(X, W, strides):
     return X_pad, pad_along_height, pad_along_width
 
 
-def _output_shape(X, W, pads=[2, 2], strides=[1, 1]):
+def _output_shape(X, W_shape, pads=[2, 2], strides=[1, 1]):
     (m, in_height, in_width, n_C) = X.shape
-    (f_height, f_width, n_C_prev, n_C) = W.shape
+    (f_height, f_width, n_C_prev, n_C) = W_shape
     out_height = int(1 + (in_height + 2 * pads[0] -
                           f_height) / strides[0])
     out_width = int(1 + (in_width + 2 * pads[1] -
@@ -48,15 +48,6 @@ class Conv2d(object):
         self.pad = pad
         self.b = np.random.randn(1, 1, 1, self.W.shape[3])
 
-    def _output_shape(self):
-        (m, in_height, in_width, n_C) = self.X.shape
-        (f_height, f_width, n_C_prev, n_C) = self.W.shape
-        out_height = int(1 + (in_height + 2 * self.pad_along_height -
-                              f_height) / self.strides[0])
-        out_width = int(1 + (in_width + 2 * self.pad_along_width -
-                             f_width) / self.strides[1])
-        return (m, out_height, out_width, n_C)
-
     def _convolve(self, slice, filter_num):
         return np.sum(slice * self.W[:, :, :, filter_num]) + self.b[:, :, :, filter_num]
 
@@ -66,12 +57,12 @@ class Conv2d(object):
             self.X_pad = self.X
         elif self.pad == 'SAME':
             (self.X_pad, self.pad_along_height, self.pad_along_width) = \
-                                    _apply_padding(self.X, self.W, self.strides)
+                                    _apply_padding(self.X, self.W.shape, self.strides)
 
         (m, in_height, in_width, n_C) = self.X.shape
         (f_height, f_width, n_C_prev, n_C) = self.W.shape
 
-        out_shape = _output_shape(X, W, [self.pad_along_height, self.pad_along_width], self.strides)
+        out_shape = _output_shape(X, W.shape, [self.pad_along_height, self.pad_along_width], self.strides)
         (m, out_height, out_width, n_C) = out_shape
         self.Z = np.zeros(out_shape)
 
@@ -94,11 +85,52 @@ class Conv2d(object):
         pass
 
 
+class Pool(object):
+
+    def __init__(self, mode='max', f=(2, 2), strides=(1, 1), pad='VALID'):
+        self.strides = strides
+        self.f = f
+        self.pad = pad
+        self.mode = mode
+
+    def forward_pass(self, X):
+        self.X = X
+        if self.pad == 'VALID':
+            self.X_pad = self.X
+        elif self.pad == 'SAME':
+            (self.X_pad, self.pad_along_height, self.pad_along_width) = \
+                                    _apply_padding(self.X, self.f, self.strides)
+
+        (m, in_height, in_width, n_C) = self.X.shape
+        out_shape = _output_shape(X, W, [self.pad_along_height, self.pad_along_width], self.strides)
+        (m, out_height, out_width, n_C) = out_shape
+        self.Z = np.zeros(out_shape)
+
+        for i in range(m):
+            for h in range(out_height):
+                for w in range(out_width):
+                    for c in range(n_C):
+                        v_start = h + h * (self.strides[0] - 1)
+                        v_end = v_start + self.f[0]
+                        h_start = w + w * (self.strides[1] - 1)
+                        h_end = h_start + self.f[1]
+
+                        slice = self.X_pad[i, v_start:v_end, h_start:h_end, c]
+                        if mode == 'max':
+                            self.Z[i, h, w, c] = np.max(slice)
+                        if mode == 'average':
+                            self.Z[i, h, w, c] = np.mean(slice)
+        return self.Z
+
+    def backward_pass(self):
+        pass
+
+
 if __name__ == '__main__':
     w = np.random.randn(3, 3, 2, 10)
     np.random.seed(1)
     x = np.random.randn(4, 3, 3, 2)
-    x_pad, pad_along_height, pad_along_width = _apply_padding(x, w, strides=[1, 1])
+    x_pad, pad_along_height, pad_along_width = _apply_padding(x, w.shape, strides=[1, 1])
     print ("x.shape =", x.shape)
     print ("x_pad.shape =", x_pad.shape)
     print ("x[1,1] =", x[1,1])
