@@ -32,7 +32,8 @@ def _apply_padding(X, W_shape, strides):
 
 def _output_shape(X, W_shape, pads=[2, 2], strides=[1, 1]):
     (m, in_height, in_width, n_C) = X.shape
-    (f_height, f_width, n_C_prev, n_C) = W_shape
+    f_height = W_shape[0]
+    f_width = W_shape[1]
     out_height = int(1 + (in_height + 2 * pads[0] -
                           f_height) / strides[0])
     out_width = int(1 + (in_width + 2 * pads[1] -
@@ -55,6 +56,7 @@ class Conv2d(object):
         self.X = X
         if self.pad == 'VALID':
             self.X_pad = self.X
+            self.pad_along_height, self.pad_along_width = 0, 0
         elif self.pad == 'SAME':
             (self.X_pad, self.pad_along_height, self.pad_along_width) = \
                                     _apply_padding(self.X, self.W.shape, self.strides)
@@ -97,12 +99,13 @@ class Pool(object):
         self.X = X
         if self.pad == 'VALID':
             self.X_pad = self.X
+            self.pad_along_height, self.pad_along_width = 0, 0
         elif self.pad == 'SAME':
             (self.X_pad, self.pad_along_height, self.pad_along_width) = \
                                     _apply_padding(self.X, self.f, self.strides)
 
         (m, in_height, in_width, n_C) = self.X.shape
-        out_shape = _output_shape(X, W, [self.pad_along_height, self.pad_along_width], self.strides)
+        out_shape = _output_shape(X, self.f, [self.pad_along_height, self.pad_along_width], self.strides)
         (m, out_height, out_width, n_C) = out_shape
         self.Z = np.zeros(out_shape)
 
@@ -116,9 +119,9 @@ class Pool(object):
                         h_end = h_start + self.f[1]
 
                         slice = self.X_pad[i, v_start:v_end, h_start:h_end, c]
-                        if mode == 'max':
+                        if self.mode == 'max':
                             self.Z[i, h, w, c] = np.max(slice)
-                        if mode == 'average':
+                        if self.mode == 'average':
                             self.Z[i, h, w, c] = np.mean(slice)
         return self.Z
 
@@ -127,6 +130,7 @@ class Pool(object):
 
 
 if __name__ == '__main__':
+    # Check 1
     w = np.random.randn(3, 3, 2, 10)
     np.random.seed(1)
     x = np.random.randn(4, 3, 3, 2)
@@ -143,6 +147,7 @@ if __name__ == '__main__':
     axarr[1].imshow(x_pad[0,:,:,0], cmap='gray')
     plt.show()
 
+    # Check 2
     np.random.seed(1)
     A_prev = np.random.randn(10,4,4,3)
     W = np.random.randn(2,2,3,8)
@@ -151,3 +156,17 @@ if __name__ == '__main__':
     
     print("Z's mean =", np.mean(Z))
     print("Z[3,2,1] =", Z[3,2,1])
+
+    # Check 3
+    np.random.seed(1)
+    A_prev = np.random.randn(2, 4, 4, 3)
+    pool = Pool(f=(3, 3), strides=(2, 2))
+
+    A = pool.forward_pass(A_prev)
+    print("mode = max")
+    print("A =", A)
+    print()
+    pool.mode = 'average'
+    A= pool.forward_pass(A_prev)
+    print("mode = average")
+    print("A =", A)
