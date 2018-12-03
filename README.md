@@ -1,3 +1,4 @@
+<br/><br/>
 # Machine Learning Algorithms From Scratch
 This repository contains some machine learning algorithms wrote from scratch in Python using NumPy only.
 
